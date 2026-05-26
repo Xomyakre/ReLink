@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReLink - URL Shortener</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .logo p {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .result-box {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .result-box.show {
+            display: block;
+        }
+
+        .result-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .short-url {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .short-url a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            word-break: break-all;
+        }
+
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            margin-left: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+
+        .copy-btn.copied {
+            background: #10b981;
+        }
+
+        .analytics {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .analytics-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .analytics-row:last-child {
+            border-bottom: none;
+        }
+
+        .analytics-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .analytics-value {
+            color: #333;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+            animation: shake 0.5s ease-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            color: #666;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+
+            .logo h1 {
+                font-size: 2rem;
+            }
+
+            .short-url {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .copy-btn {
+                width: 100%;
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>🔗 ReLink</h1>
+            <p>Сокращайте ссылки и отслеживайте статистику</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('shorten')">Сократить URL</button>
+            <button class="tab" onclick="switchTab('analytics')">Аналитика</button>
+        </div>
+
+        <!-- Tab 1: Shorten URL -->
+        <div id="shorten-tab" class="tab-content active">
+            <div class="input-group">
+                <label for="url-input">Введите длинный URL</label>
+                <input type="text" id="url-input" placeholder="https://example.com/very/long/url" />
+            </div>
+
+            <button class="btn" onclick="shortenURL()">
+                <span id="shorten-btn-text">Сократить ссылку</span>
+            </button>
+
+            <div id="result" class="result-box">
+                <div class="result-title">✅ Ваша короткая ссылка готова!</div>
+                <div class="short-url">
+                    <a id="short-url-link" href="#" target="_blank"></a>
+                    <button class="copy-btn" onclick="copyToClipboard()">Копировать</button>
+                </div>
+                <div class="analytics" id="initial-analytics">
+                    <div class="analytics-row">
+                        <span class="analytics-label">Короткий код:</span>
+                        <span class="analytics-value" id="short-code"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="error" class="error"></div>
+        </div>
+
+        <!-- Tab 2: Analytics -->
+        <div id="analytics-tab" class="tab-content">
+            <div class="input-group">
+                <label for="analytics-input">Введите короткий код</label>
+                <input type="text" id="analytics-input" placeholder="abc123" />
+            </div>
+
+            <button class="btn btn-secondary" onclick="getAnalytics()">
+                <span id="analytics-btn-text">📊 Получить статистику</span>
+            </button>
+
+            <div id="analytics-result" class="result-box">
+                <div class="result-title">📈 Статистика переходов</div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="click-count">0</div>
+                        <div class="stat-label">Переходов</div>
+                    </div>
+                </div>
+                <div class="analytics">
+                    <div class="analytics-row">
+                        <span class="analytics-label">Короткий код:</span>
+                        <span class="analytics-value" id="analytics-code"></span>
+                    </div>
+                    <div class="analytics-row">
+                        <span class="analytics-label">Первый переход:</span>
+                        <span class="analytics-value" id="first-access">—</span>
+                    </div>
+                    <div class="analytics-row">
+                        <span class="analytics-label">Последний переход:</span>
+                        <span class="analytics-value" id="last-access">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="analytics-error" class="error"></div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(tab + '-tab').classList.add('active');
+
+            // Clear errors
+            hideError();
+            hideError('analytics-error');
+        }
+
+        async function shortenURL() {
+            const urlInput = document.getElementById('url-input');
+            const url = urlInput.value.trim();
+            const btnText = document.getElementById('shorten-btn-text');
+
+            if (!url) {
+                showError('Пожалуйста, введите URL');
+                return;
+            }
+
+            // Validate URL format
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                showError('URL должен начинаться с http:// или https://');
+                return;
+            }
+
+            hideError();
+            btnText.innerHTML = '<span class="loading"></span>';
+
+            try {
+                const response = await fetch('/api/shorten', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Ошибка при создании короткой ссылки');
+                }
+
+                // Show result
+                document.getElementById('short-url-link').textContent = data.short_url;
+                document.getElementById('short-url-link').href = data.short_url;
+                document.getElementById('short-code').textContent = data.short_code;
+                document.getElementById('result').classList.add('show');
+
+                // Clear input
+                urlInput.value = '';
+
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                btnText.textContent = '✨ Сократить ссылку';
+            }
+        }
+
+        async function getAnalytics() {
+            const codeInput = document.getElementById('analytics-input');
+            const code = codeInput.value.trim();
+            const btnText = document.getElementById('analytics-btn-text');
+
+            if (!code) {
+                showError('Пожалуйста, введите короткий код', 'analytics-error');
+                return;
+            }
+
+            hideError('analytics-error');
+            btnText.innerHTML = '<span class="loading"></span>';
+
+            try {
+                const response = await fetch(`/api/analytics/${code}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Короткий код не найден');
+                }
+
+                // Show analytics
+                document.getElementById('click-count').textContent = data.click_count;
+                document.getElementById('analytics-code').textContent = data.short_code;
+                document.getElementById('first-access').textContent = 
+                    data.first_access ? formatDate(data.first_access) : '—';
+                document.getElementById('last-access').textContent = 
+                    data.last_access ? formatDate(data.last_access) : '—';
+                document.getElementById('analytics-result').classList.add('show');
+
+            } catch (error) {
+                showError(error.message, 'analytics-error');
+            } finally {
+                btnText.textContent = '📊 Получить статистику';
+            }
+        }
+
+        function copyToClipboard() {
+            const link = document.getElementById('short-url-link').textContent;
+            const btn = event.target;
+
+            navigator.clipboard.writeText(link).then(() => {
+                const originalText = btn.textContent;
+                btn.textContent = '✓ Скопировано';
+                btn.classList.add('copied');
+
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        function showError(message, elementId = 'error') {
+            const errorEl = document.getElementById(elementId);
+            errorEl.textContent = message;
+            errorEl.classList.add('show');
+        }
+
+        function hideError(elementId = 'error') {
+            const errorEl = document.getElementById(elementId);
+            errorEl.classList.remove('show');
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('ru-RU', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('url-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') shortenURL();
+        });
+
+        document.getElementById('analytics-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') getAnalytics();
+        });
+    </script>
+</body>
+</html>

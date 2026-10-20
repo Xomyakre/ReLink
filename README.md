@@ -10,7 +10,7 @@ Modern URL shortening service with analytics, built with Go.
 
 ```bash
 
-git clone <your-repo-url>
+git clone https://github.com/Xomyakre/ReLink.git
 cd ReLink
 
 # Install dependencies
